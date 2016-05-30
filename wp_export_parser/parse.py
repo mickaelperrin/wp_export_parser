@@ -1,7 +1,7 @@
 import re
 import datetime
 from urlparse import urlparse
-from xml.etree.ElementTree import iterparse
+from xml.etree.ElementTree import iterparse, parse
 from .autop import wpautop
 from . import parse_shortcodes
 
@@ -30,8 +30,8 @@ def parse_post(post):
             out['post_id'] = element.text
         elif 'post_type' in element.tag:
             out['post_type'] = element.text
-        elif 'pubDate' in element.tag and element.text:
-            out['pubDate'] = parse_pubdate(element.text)
+        # elif 'pubDate' in element.tag and element.text:
+        #     out['pubDate'] = parse_pubdate(element.text)
         elif 'status' in element.tag:
             out['status'] = element.text
         elif 'link' in element.tag:
@@ -96,11 +96,11 @@ class WPParser(object):
                 return urlparse(elem.find('./link').text).hostname
 
     def get_items(self):
-        self.input_file.seek(0)
-        for event, elem in iterparse(self.input_file):
-            if elem.tag == 'item':
-                out = parse_post(elem)
-                out['comments'] = get_comments(elem)
-                out['categories'] = get_categories(elem)
-                yield out
-                elem.clear()
+        tree = parse('PAGES.xml')
+        items = tree.findall('.//item')
+        for elem in items:
+            out = parse_post(elem)
+            # out['comments'] = get_comments(elem)
+            # out['categories'] = get_categories(elem)
+            yield out
+            elem.clear()
